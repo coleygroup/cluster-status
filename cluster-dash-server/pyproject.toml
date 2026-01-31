@@ -7,7 +7,5 @@ requires-python = ">=3.10"
 dependencies = [
     "flask>=3.1.2",
     "jsonschema>=4.25.1",
-    "pandas>=2.3.2",
-    "plotly>=6.3.0",
     "waitress>=3.0.2",
 ]
