@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% block title %}
+{{ name }}
+{% endblock %}
+{% endblock %}
+
+{% block content %}
+    <div id="desc">
+            {% if desc_ %}
+            <p>{{ desc_ }}</p>
+        {% endif %}
+    </div>
+    <div id='chart' class='chart'></div>
+    <script type='text/javascript'>
+      // graph_json should be a JSON object, but be resilient to strings/arrays
+      var fig = {{ graph_json | safe }};
+      if (typeof fig === 'string') {
+        try { fig = JSON.parse(fig); } catch (e) { fig = {}; }
+      }
+      var data = Array.isArray(fig) ? fig : (fig.data || []);
+      var layout = (!Array.isArray(fig) && fig.layout) ? fig.layout : {};
+      Plotly.newPlot('chart', data, layout, {responsive: true});
+    </script>
+{% endblock %}

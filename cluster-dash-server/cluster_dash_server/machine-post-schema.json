@@ -1,0 +1,183 @@
+{
+  "$id": "machine-post-schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Machine-Post-Schema",
+  "description": "The format we expect from machines posting to our server",
+  "type": "object",
+  "properties": {
+    "auth_code": {
+      "description": "The authorisation code for accepted requests",
+      "type": "string"
+    },
+    "hostname": {
+      "description": "The hostname form the machine",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "The timestamp from the machine",
+      "type": "number"
+    },
+    "general": {
+      "description": "General data from the machine",
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "description": "The hostname form the machine",
+          "type": "string"
+        },
+        "system_time": {
+          "description": "The time from the machine",
+          "type": "number"
+        },
+        "boottime": {
+          "description": "The boottime from the machine",
+          "type": "number"
+        }
+      }
+    },
+    "memory": {
+      "description": "The memory data from the machine",
+      "type": "object",
+      "properties": {
+        "total_gb": {
+          "description": "Total GB of memory",
+          "type": "number"
+        },
+        "available_gb": {
+          "description": "Available GB of memory",
+          "type": "number"
+        },
+        "used_gb": {
+          "description": "Used GB of memory",
+          "type": "number"
+        }
+      }
+    },
+    "disk": {
+      "description": "Information about the disk",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "mount_point": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          },
+          "total_gb": {
+            "type": "number"
+          },
+          "used_gb": {
+            "type": "number"
+          },
+          "percent_used": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "cpu": {
+      "type": "object",
+      "description": "Details about the cpu data",
+      "properties": {
+        "cpu_percent": {
+          "type": "number"
+        },
+        "load_avgs": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "num_cpus": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "gpu": {
+    "type": "object",
+    "description": "Details about the gpu data",
+    "additionalProperties": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "GPU name"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "gpu uuid"
+        },
+        "index": {
+          "type": "number",
+          "description": "gpu index"
+        },
+        "total_mem": {
+          "type": "number",
+          "description": "total memory of the GPU in MB"
+        },
+        "used_mem": {
+          "type": "number",
+          "description": "used memory of the GPU in MB"
+        },
+        "users": {
+          "type": "object",
+          "description": "users using this GPU (each user contains all their processes).",
+          "additionalProperties": {
+            "$ref": "#/definitions/gpu_user_data"
+          }
+        },
+        "gpu_util": {
+          "type": "number",
+          "description": "GPU utilization %"
+        },
+        "memory_util": {
+          "type": "number",
+          "description": "GPU memory utilization %"
+        }
+      },
+      "required": [
+        "total_mem",
+        "used_mem",
+        "users"
+      ]
+    }
+  },
+  "required": [
+    "auth_code",
+    "hostname",
+    "timestamp",
+    "gpu",
+    "cpu"
+  ],
+  "definitions": {
+    "gpu_user_data": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/gpu_process_data"
+      }
+    },
+    "gpu_process_data": {
+      "type": "object",
+      "description": "stores data for a gpu for a particular user's process ",
+      "properties": {
+        "mem": {
+          "type": "number",
+          "description": "memory in GB process is taking up."
+        },
+        "time": {
+          "type": "number",
+          "description": "time in seconds process has been running"
+        }
+      },
+      "required": [
+        "mem",
+        "time"
+      ]
+    }
+  }
+}

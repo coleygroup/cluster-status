@@ -1,0 +1,6 @@
+cluster_dash_server/config.py
+
+CLAUDE.md
+
+*.pyc
+__pycache__/

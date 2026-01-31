@@ -1,0 +1,15 @@
+[project]
+name = "cluster-dash-mole"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "google-api-python-client>=2.181.0",
+    "google-auth-oauthlib>=1.2.2",
+    "nvidia-ml-py>=13.580.65",
+    "nvidia-ml-py3>=7.352.0",
+    "psutil>=7.0.0",
+    "requests>=2.32.5",
+    "toml>=0.10.2",
+]

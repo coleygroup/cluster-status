@@ -1,0 +1,64 @@
+{
+
+  "hostname": "molgpu01",
+  "timestamp": 1682012674.176845,
+  "auth_code": "lab_cluster_2025",
+  "general": {
+    "hostname": "molgpu01",
+    "system_time": 1682012674.176845,
+    "boottime": 1681308808.0
+  },
+
+  "memory": {
+    "total_gb": 125.64807891845703,
+    "available_gb": 116.22850799560547,
+    "used_gb": 8.084880828857422
+  },
+  "disk": {
+    "/dev/nvme0n1p2": {
+      "mount_point": "/",
+      "total_gb": 0.4990081787109375,
+      "used_gb": 0.005100250244140625,
+      "percent_used": 1.0
+    },
+    "/dev/nvme0n1p1": {
+      "mount_point": "/boot/efi",
+      "total_gb": 0.4990081787109375,
+      "used_gb": 0.005100250244140625,
+      "percent_used": 1.0
+    }
+  },
+  "cpu": {
+    "cpu_percent": 88,
+    "num_cpus": 64,
+    "load_avgs": [
+      0.31,
+      0.28,
+      0.31
+    ]
+  },
+  "gpu": {
+    "0_NVIDIA-GeForce-RTX-3090_66667c": {
+      "name": "NVIDIA GeForce RTX 3090",
+      "uuid": "GPU-66667c28-3586-de1d-a928-63a84a096cb0",
+      "index": 0,
+      "total_mem": 24265.8125,
+      "used_mem": 19.8125,
+      "users": {
+      },
+      "gpu_util": 0,
+      "memory_util": 0
+    },
+    "1_NVIDIA-GeForce-RTX-3090_560b61": {
+      "name": "NVIDIA GeForce RTX 3090",
+      "uuid": "GPU-560b6182-b798-a249-44af-2aabbf4c34b0",
+      "index": 1,
+      "total_mem": 24268.3125,
+      "used_mem": 5.9375,
+      "users": {
+      },
+      "gpu_util": 0,
+      "memory_util": 0
+    }
+  }
+}
