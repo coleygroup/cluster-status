@@ -1,6 +1,19 @@
-import collections
+"""
+GPU Cluster Dashboard - Flask Application
+
+A single-page monitoring dashboard for GPU servers.
+Receives data via POST from cluster-dash-mole agents and displays
+real-time status in a responsive web interface.
+
+Routes:
+    POST /              - Data ingestion endpoint (from mole agents)
+    GET  /              - Serve the dashboard HTML
+    GET  /api/dashboard-data   - JSON API for dashboard data
+    GET  /api/gpu-summary      - CLI-friendly text summary (with ANSI colors)
+    GET  /data-out/gpu-data-simple - Legacy API (kept for compatibility)
+"""
+
 import copy
-import os
 from os import path as osp
 import json
 import time
@@ -15,18 +28,14 @@ from flask import (
     request,
 )
 from werkzeug.exceptions import BadRequest
-import pandas as pd
-import plotly
-import plotly.io as pio
-import plotly.express as px
-import plotly.graph_objects as go
-import base64
-import numpy as np
 
+
+# Cache for the JSON schema
 _machine_post_schema = None
 
 
 def get_machine_post_schema():
+    """Load and cache the JSON schema for validating incoming data."""
     global _machine_post_schema
     if _machine_post_schema is None:
         pth = osp.join(osp.dirname(__file__), "machine-post-schema.json")
@@ -35,61 +44,23 @@ def get_machine_post_schema():
     return _machine_post_schema
 
 
-def fix_plotly_binary_data(graph_json_str):
-    """Convert binary encoded data back to regular arrays in Plotly JSON"""
-    graph_dict = json.loads(graph_json_str)
-
-    for trace in graph_dict.get("data", []):
-        # Fix y-axis data
-        if "y" in trace and isinstance(trace["y"], dict) and "bdata" in trace["y"]:
-            binary_data = base64.b64decode(trace["y"]["bdata"])
-            dtype = trace["y"].get("dtype", "f8")  # default to float64
-
-            if dtype == "f8":  # float64
-                y_values = np.frombuffer(binary_data, dtype=np.float64).tolist()
-            elif dtype == "f4":  # float32
-                y_values = np.frombuffer(binary_data, dtype=np.float32).tolist()
-            else:
-                # Handle other dtypes as needed
-                y_values = np.frombuffer(binary_data, dtype=dtype).tolist()
-
-            trace["y"] = y_values
-
-        # Fix x-axis data if needed (though usually it's strings)
-        if "x" in trace and isinstance(trace["x"], dict) and "bdata" in trace["x"]:
-            binary_data = base64.b64decode(trace["x"]["bdata"])
-            dtype = trace["x"].get("dtype", "f8")
-            x_values = np.frombuffer(binary_data, dtype=dtype).tolist()
-            trace["x"] = x_values
-
-        # Fix text data if needed
-        if (
-            "text" in trace
-            and isinstance(trace["text"], dict)
-            and "bdata" in trace["text"]
-        ):
-            binary_data = base64.b64decode(trace["text"]["bdata"])
-            dtype = trace["text"].get("dtype", "f8")
-            text_values = np.frombuffer(binary_data, dtype=dtype).tolist()
-            trace["text"] = text_values
-
-    return json.dumps(graph_dict)
-
-
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__)
     app.config.from_mapping(
         PASSCODE="pass",
     )
+
+    # In-memory storage for server data
+    # Key: hostname, Value: data dict with received_timestamp
     stored_results_ = {}
 
     if test_config is None:
-        # load the instance config, if it exists, when not testing
+        # Load the instance config, if it exists, when not testing
         app.config.from_pyfile("config.py", silent=True)
         print(app.config)
     else:
-        # load the test config if passed in
+        # Load the test config if passed in
         app.config.from_mapping(test_config)
 
     @app.errorhandler(400)
@@ -98,8 +69,13 @@ def create_app(test_config=None):
 
     @app.route("/", methods=("GET", "POST"))
     def index():
+        """
+        Main endpoint:
+        - POST: Receive data from mole agents
+        - GET: Serve the dashboard HTML
+        """
         if request.method == "POST":
-
+            # Data ingestion from mole agents
             try:
                 json_back = request.json
             except BadRequest as ex:
@@ -118,169 +94,21 @@ def create_app(test_config=None):
             json_back.pop("auth_code")
 
             json_back["received_timestamp"] = time.time()
-
             stored_results_[json_back["hostname"]] = json_back
             return jsonify({"success": True, "msg": "stored result"})
 
         else:
-            status_list = []
-            for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-                time_diff = time.time() - results["received_timestamp"]
-                time_diff_mins = round(time_diff / 60)
-                if time_diff_mins > 10:
-                    status_color = "#ff9999"
-                else:
-                    status_color = "#b3e6b3"
-                status_list.append(
-                    dict(
-                        name=name,
-                        time_diff_mins=time_diff_mins,
-                        status_color=status_color,
-                    )
-                )
-            return render_template("index.html", status_list=status_list)
-
-    @app.route("/demo-plot")
-    def demo_plot():
-        return render_template(
-            "simple_chart.html", name="demo", render_src="scripts/renderDemoData.js"
-        )
-
-    @app.route("/gpu-data")
-    def gpu_mem_plot():
-        name = "GPU Memory"
-        if len(stored_results_) == 0:
-            return render_template("no-data.html", name=name)
-
-        return render_template(
-            "simple_chart.html", name=name, render_src="scripts/renderGpuData.js"
-        )
-
-    @app.route("/cpu-data")
-    def cpu_plot():
-        """
-        CPU utilization as a percentage -- demonstrating how one can do all of the plotting in Python.
-        """
-        out = collections.defaultdict(list)
-        for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-            out["names"].append(name)
-            # Ensure numeric type so Plotly treats y as continuous, not categorical
-            try:
-                cpu_val = float(results["cpu"]["cpu_percent"])
-            except (TypeError, ValueError, KeyError):
-                cpu_val = 0.0
-            out["cpu_percent"].append(cpu_val)
-        if len(out) == 0:
-            return render_template("no-data.html", name="CPU Util")
-        df = pd.DataFrame(out)
-
-        fig = px.bar(df, x="names", y="cpu_percent", range_y=[0, 100])
-        graph_json = fix_plotly_binary_data(fig.to_json())
-        return render_template(
-            "plotly_express.html", name="CPU Util", graph_json=graph_json
-        )
-
-    @app.route("/root_drive")
-    def root_storage():
-        """
-        Percentage of storage of the root drive used.
-        """
-        title = "Percent of '/' drive used."
-        out = collections.defaultdict(list)
-        for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-
-            for drive, drive_details in results["disk"].items():
-                if drive_details["mount_point"] == "/":
-                    out["names"].append(name)
-                    out["percent_used"].append(drive_details["percent_used"])
-        if len(out) == 0:
-            return render_template("no-data.html", name=title)
-        df = pd.DataFrame(out)
-        fig = px.bar(df, x="names", y="percent_used")
-
-        graph_json = fix_plotly_binary_data(fig.to_json())
-        return render_template("plotly_express.html", name=title, graph_json=graph_json)
-
-    @app.route("/memory")
-    def memory_plot():
-        """
-        Available and used mnemory in GB
-        """
-        title = "Available and Used Memory (GB)"
-        out = collections.defaultdict(list)
-        for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-            out["names"].append(name)
-            out["names"].append(name)
-            out["memory"].append(results["memory"]["used_gb"])
-            out["memory"].append(results["memory"]["available_gb"])
-            out["memory_type"].append("used")
-            out["memory_type"].append("available")
-
-        if len(out) == 0:
-            return render_template("no-data.html", name=title)
-        df = pd.DataFrame(out)
-
-        fig = px.bar(
-            df,
-            x="names",
-            y="memory",
-            color="memory_type",
-            text_auto=True,
-            color_discrete_map={"used": "#003d66", "available": "#ccebff"},
-        )
-        graph_json = fix_plotly_binary_data(fig.to_json())
-        return render_template("plotly_express.html", name=title, graph_json=graph_json)
-
-    @app.route("/load-data-1")
-    def loadavg1_plot():
-        """
-        Load plot.
-        """
-        out = collections.defaultdict(list)
-        for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-            out["names"].append(name)
-            out["load"].append(results["cpu"]["load_avgs"][0])
-            out["total_num_processors"].append(results["cpu"]["num_cpus"])
-            out["load_diff"].append(
-                results["cpu"]["num_cpus"] - results["cpu"]["load_avgs"][0]
-            )
-        if len(out) == 0:
-            return render_template("no-data.html", name="Load Avg (1 minute)")
-        df = pd.DataFrame(out)
-
-        fig = px.bar(
-            df,
-            x="names",
-            y="load",
-            color="load_diff",
-            labels={
-                "load_diff": "Difference between number\n of processors and load\n average (higher better)"
-            },
-            hover_data=["total_num_processors"],
-            color_continuous_scale="rdylgn",
-        )
-
-        graph_json = fix_plotly_binary_data(fig.to_json())
-        desc = """The plot below shows the 1 minute load average (bar height) and the difference between the number of
-            processors and the load average (bar color).
-             Typically you want the 1 minute load average to be less than the number of processors.
-             If it is higher, it means that the system is overloaded.
-             If it is much higher, it means that the system is under heavy load.
-             If it is much lower, it means that the system is underutilized.
-         """
-        return render_template(
-            "plotly_express.html",
-            name="Load Avg (1 minute)",
-            graph_json=graph_json,
-            desc_=desc,
-        )
+            # Serve the single-page dashboard
+            return render_template("dashboard.html")
 
     @app.route("/data-out/gpu-data-simple")
     def gpu_data_simple():
+        """
+        Legacy API endpoint for GPU data.
+        Kept for backwards compatibility with existing integrations.
+        """
         out = {}
-
         for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-            # Deep copy to avoid mutating stored state
             out[name] = copy.deepcopy(results.get("gpu", {}))
             for gpu_name, gpu_res in out[name].items():
                 gpu_res["received_timestamp"] = (
@@ -293,28 +121,24 @@ def create_app(test_config=None):
 
     @app.route("/api/gpu-summary")
     def gpu_summary():
+        """
+        CLI-friendly text summary with ANSI color codes.
+        Useful for quick terminal checks: curl http://server:8080/api/gpu-summary
+        """
         servers = []
 
         for name, results in sorted(stored_results_.items(), key=lambda x: x[0]):
-            # Check if server is online
             time_diff_mins = round((time.time() - results["received_timestamp"]) / 60)
             status = "online" if time_diff_mins <= 10 else "offline"
 
-            # Analyze GPU data - using same approach as gpu_mem_plot()
             gpu_data = results.get("gpu", {})
             total_gpus = len(gpu_data)
 
-            # Calculate GPU memory usage using total_mem and used_mem (same as renderGpuData.js)
             gpu_memory_percentages = []
             for gpu_info in gpu_data.values():
                 total_mem = gpu_info.get("total_mem", 0)
                 used_mem = gpu_info.get("used_mem", 0)
-
-                if total_mem > 0:
-                    memory_percent = (used_mem / total_mem) * 100
-                else:
-                    memory_percent = 0
-
+                memory_percent = (used_mem / total_mem) * 100 if total_mem > 0 else 0
                 gpu_memory_percentages.append(memory_percent)
 
             free_gpus = sum(1 for percent in gpu_memory_percentages if percent < 30)
@@ -325,38 +149,32 @@ def create_app(test_config=None):
             )
             cpu_usage = round(results.get("cpu", {}).get("cpu_percent", 0))
 
-            servers.append(
-                {
-                    "name": name,
-                    "total_gpus": total_gpus,
-                    "free_gpus": free_gpus,
-                    "avg_gpu_usage": avg_gpu_usage,
-                    "cpu_usage": cpu_usage,
-                    "status": status,
-                }
-            )
+            servers.append({
+                "name": name,
+                "total_gpus": total_gpus,
+                "free_gpus": free_gpus,
+                "avg_gpu_usage": avg_gpu_usage,
+                "cpu_usage": cpu_usage,
+                "status": status,
+            })
 
-        # ANSI color codes
+        # ANSI color codes for terminal output
         BOLD = "\033[1m"
         GREEN = "\033[92m"
         RED = "\033[91m"
         YELLOW = "\033[93m"
         RESET = "\033[0m"
 
-        # Format as colored text table
         lines = [f"{BOLD}Server\t\tGPUs\tFree\tGPU%\tCPU%\tStatus{RESET}"]
 
         for server in servers:
-            # Color coding based on status and usage
             status_color = GREEN if server["status"] == "online" else RED
             gpu_color = (
-                GREEN
-                if server["avg_gpu_usage"] < 50
+                GREEN if server["avg_gpu_usage"] < 50
                 else (YELLOW if server["avg_gpu_usage"] < 80 else RED)
             )
             cpu_color = (
-                GREEN
-                if server["cpu_usage"] < 50
+                GREEN if server["cpu_usage"] < 50
                 else (YELLOW if server["cpu_usage"] < 80 else RED)
             )
 
@@ -368,5 +186,80 @@ def create_app(test_config=None):
             )
 
         return "\n".join(lines), 200, {"Content-Type": "text/plain"}
+
+    @app.route("/api/dashboard-data")
+    def dashboard_data():
+        """
+        Main API endpoint for the single-page dashboard.
+
+        Returns all server data in a structured format optimized for
+        frontend rendering with summary cards and GPU detail panels.
+        """
+        current_time = time.time()
+        servers = {}
+
+        for hostname, results in sorted(stored_results_.items(), key=lambda x: x[0]):
+            # Calculate time since last update
+            time_diff = current_time - results.get("received_timestamp", current_time)
+            last_seen_mins = round(time_diff / 60)
+
+            # Server is "offline" if no update in 10+ minutes
+            status = "online" if last_seen_mins <= 10 else "offline"
+
+            # CPU data
+            cpu_data = results.get("cpu", {})
+            cpu_info = {
+                "cpu_percent": round(cpu_data.get("cpu_percent", 0)),
+                "num_cpus": cpu_data.get("num_cpus", 0)
+            }
+
+            # GPU data - transform from dict to sorted list
+            gpu_dict = results.get("gpu", {})
+            gpus = []
+            memory_percentages = []
+
+            for gpu_key, gpu_info in gpu_dict.items():
+                total_mem = gpu_info.get("total_mem", 0)
+                used_mem = gpu_info.get("used_mem", 0)
+                memory_percent = round((used_mem / total_mem) * 100) if total_mem > 0 else 0
+                memory_percentages.append(memory_percent)
+
+                gpus.append({
+                    "index": gpu_info.get("index", 0),
+                    "name": gpu_info.get("name", "Unknown GPU"),
+                    "total_mem_mb": round(total_mem),
+                    "used_mem_mb": round(used_mem),
+                    "memory_percent": memory_percent,
+                    "gpu_util": gpu_info.get("gpu_util", 0),
+                    "users": gpu_info.get("users", {})
+                })
+
+            # Sort GPUs by index
+            gpus.sort(key=lambda x: x["index"])
+
+            # Summary calculations
+            total_gpus = len(gpus)
+            free_gpus = sum(1 for pct in memory_percentages if pct < 30)
+            avg_memory_percent = (
+                round(sum(memory_percentages) / len(memory_percentages))
+                if memory_percentages else 0
+            )
+
+            servers[hostname] = {
+                "status": status,
+                "last_seen_mins": last_seen_mins,
+                "cpu": cpu_info,
+                "gpus": gpus,
+                "summary": {
+                    "total_gpus": total_gpus,
+                    "free_gpus": free_gpus,
+                    "avg_gpu_memory_percent": avg_memory_percent
+                }
+            }
+
+        return jsonify({
+            "timestamp": current_time,
+            "servers": servers
+        })
 
     return app
