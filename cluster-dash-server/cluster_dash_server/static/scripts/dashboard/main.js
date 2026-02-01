@@ -5,25 +5,19 @@
  * 1. Initializes the dashboard on page load
  * 2. Fetches data from the API
  * 3. Renders the summary cards and GPU details
- * 4. Sets up auto-refresh (30 second polling)
+ *
+ * Data refresh is handled server-side by the mole agents pushing updates.
+ * Users can manually refresh the page to see new data.
  */
 
 import { fetchDashboardData } from './api.js';
 import { renderSummaryCards } from './summaryCards.js';
 import { renderGpuDetails } from './gpuDetails.js';
 
-// Configuration
-const REFRESH_INTERVAL_MS = 30 * 1000;  // 30 seconds
-
 // DOM element references (set in init)
 let summaryCardsContainer = null;
 let gpuDetailsContainer = null;
-let refreshCountdownEl = null;
 let lastUpdateEl = null;
-
-// State
-let countdownTimer = null;
-let secondsRemaining = 30;
 
 /**
  * Initialize the dashboard.
@@ -33,14 +27,10 @@ async function init() {
     // Cache DOM references
     summaryCardsContainer = document.getElementById('summary-cards');
     gpuDetailsContainer = document.getElementById('gpu-details');
-    refreshCountdownEl = document.getElementById('refresh-countdown');
     lastUpdateEl = document.getElementById('last-update');
 
-    // Initial data load
+    // Load and render data
     await refreshData();
-
-    // Start auto-refresh timer
-    startAutoRefresh();
 }
 
 /**
@@ -71,42 +61,6 @@ async function refreshData() {
                 </button>
             </div>
         `;
-    }
-}
-
-/**
- * Start the auto-refresh countdown and periodic data fetching.
- */
-function startAutoRefresh() {
-    // Reset countdown
-    secondsRemaining = 30;
-    updateCountdownBadge();
-
-    // Clear any existing timer
-    if (countdownTimer) {
-        clearInterval(countdownTimer);
-    }
-
-    // Update countdown every second
-    countdownTimer = setInterval(() => {
-        secondsRemaining--;
-
-        if (secondsRemaining <= 0) {
-            // Time to refresh
-            secondsRemaining = 30;
-            refreshData();
-        }
-
-        updateCountdownBadge();
-    }, 1000);
-}
-
-/**
- * Update the countdown badge text.
- */
-function updateCountdownBadge() {
-    if (refreshCountdownEl) {
-        refreshCountdownEl.textContent = `Auto-refresh in ${secondsRemaining}s`;
     }
 }
 

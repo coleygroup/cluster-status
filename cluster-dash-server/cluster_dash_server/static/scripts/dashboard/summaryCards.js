@@ -89,5 +89,13 @@ function createServerCard(hostname, server) {
         </div>
     `;
 
+    // Make card clickable - scroll to detail panel
+    col.querySelector('.server-card').addEventListener('click', () => {
+        const detailPanel = document.getElementById(`server-${hostname}`);
+        if (detailPanel) {
+            detailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+
     return col;
 }

@@ -45,6 +45,7 @@ export function renderGpuDetails(container, servers) {
 function createServerPanel(hostname, server) {
     const panel = document.createElement('div');
     panel.className = 'server-detail-panel';
+    panel.id = `server-${hostname}`;
 
     const statusBadge = server.status === 'online'
         ? '<span class="badge bg-success">Online</span>'

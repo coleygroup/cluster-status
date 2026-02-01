@@ -4,7 +4,7 @@ poll_interval_in_secs = 300
 [Json_Sender_Logger]
 use = true
 min_interval_in_secs = 5
-address_in = "http://35.202.186.19:8080"
+address_in = "http://molgpu01.mit.edu:8088"
 auth_code = "lab_cluster_2025"
 
 [Google_Sheets_Logger]

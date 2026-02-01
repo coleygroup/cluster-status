@@ -141,7 +141,13 @@ def create_app(test_config=None):
                 memory_percent = (used_mem / total_mem) * 100 if total_mem > 0 else 0
                 gpu_memory_percentages.append(memory_percent)
 
-            free_gpus = sum(1 for percent in gpu_memory_percentages if percent < 30)
+            gpu_utils = [
+                gpu_info.get("gpu_util", 0) for gpu_info in gpu_data.values()
+            ]
+            free_gpus = sum(
+                1 for mem_pct, util_pct in zip(gpu_memory_percentages, gpu_utils)
+                if mem_pct < 30 and util_pct < 30
+            )
             avg_gpu_usage = (
                 round(sum(gpu_memory_percentages) / len(gpu_memory_percentages))
                 if gpu_memory_percentages
@@ -239,7 +245,9 @@ def create_app(test_config=None):
 
             # Summary calculations
             total_gpus = len(gpus)
-            free_gpus = sum(1 for pct in memory_percentages if pct < 30)
+            free_gpus = sum(
+                1 for gpu in gpus if gpu["memory_percent"] < 30 and gpu["gpu_util"] < 30
+            )
             avg_memory_percent = (
                 round(sum(memory_percentages) / len(memory_percentages))
                 if memory_percentages else 0
