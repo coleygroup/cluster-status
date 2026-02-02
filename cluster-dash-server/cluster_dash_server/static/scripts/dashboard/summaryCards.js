@@ -7,20 +7,17 @@
 
 import { formatDuration, getAvailabilityLevel, escapeHtml } from './utils.js';
 
+// Track currently selected server for highlight state
+let selectedHostname = null;
+
 /**
  * Render all server summary cards into the container.
+ * Uses fade transition to avoid jarring refresh.
  *
  * @param {HTMLElement} container - The DOM element to render cards into
  * @param {Object} servers - Server data from the API
- *
- * @example
- * const container = document.getElementById('summary-cards');
- * renderSummaryCards(container, data.servers);
  */
 export function renderSummaryCards(container, servers) {
-    // Clear existing content
-    container.innerHTML = '';
-
     // Get sorted server names
     const serverNames = Object.keys(servers).sort();
 
@@ -34,12 +31,30 @@ export function renderSummaryCards(container, servers) {
         return;
     }
 
-    // Create a card for each server
+    // Build new content
+    const fragment = document.createDocumentFragment();
     serverNames.forEach(hostname => {
         const server = servers[hostname];
         const card = createServerCard(hostname, server);
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Fade out, swap content, fade in
+    container.classList.add('fade-container');
+    container.classList.add('fade-out');
+
+    setTimeout(() => {
+        container.innerHTML = '';
+        container.appendChild(fragment);
+        // Re-apply selected state if applicable
+        if (selectedHostname) {
+            const selectedCard = container.querySelector(`[data-hostname="${selectedHostname}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('is-selected');
+            }
+        }
+        container.classList.remove('fade-out');
+    }, 150);
 }
 
 /**
@@ -59,9 +74,9 @@ function createServerCard(hostname, server) {
     const col = document.createElement('div');
     col.className = 'col-6 col-sm-4 col-md-3 col-xl-2';
 
-    // Build the card HTML
+    // Build the card HTML with divider separating identity from metrics
     col.innerHTML = `
-        <div class="server-card status-${status}">
+        <div class="server-card status-${status}" data-hostname="${escapeHtml(hostname)}">
             <div class="server-name">${escapeHtml(hostname)}</div>
             <div class="server-status">
                 ${status === 'online'
@@ -69,6 +84,8 @@ function createServerCard(hostname, server) {
                     : `<span class="text-secondary">Offline</span> &middot; ${formatDuration(last_seen_mins)}`
                 }
             </div>
+
+            <div class="card-divider"></div>
 
             <div class="metric-row">
                 <span class="metric-label">CPU</span>
@@ -94,10 +111,25 @@ function createServerCard(hostname, server) {
         </div>
     `;
 
+    const cardEl = col.querySelector('.server-card');
+
     // Make card clickable - scroll to detail panel with proper offset
-    col.querySelector('.server-card').addEventListener('click', () => {
+    cardEl.addEventListener('click', () => {
         const detailPanel = document.getElementById(`server-${hostname}`);
         if (detailPanel) {
+            // Clear previous selection
+            document.querySelectorAll('.server-card.is-selected').forEach(el => {
+                el.classList.remove('is-selected');
+            });
+            document.querySelectorAll('.server-detail-panel.is-target').forEach(el => {
+                el.classList.remove('is-target');
+            });
+
+            // Set new selection
+            cardEl.classList.add('is-selected');
+            detailPanel.classList.add('is-target');
+            selectedHostname = hostname;
+
             // Calculate the actual height of sticky elements
             const header = document.querySelector('.dashboard-header');
             const summarySection = document.getElementById('summary-section');
@@ -117,4 +149,17 @@ function createServerCard(hostname, server) {
     });
 
     return col;
+}
+
+/**
+ * Clear the selected state (useful when refreshing data).
+ */
+export function clearSelection() {
+    selectedHostname = null;
+    document.querySelectorAll('.server-card.is-selected').forEach(el => {
+        el.classList.remove('is-selected');
+    });
+    document.querySelectorAll('.server-detail-panel.is-target').forEach(el => {
+        el.classList.remove('is-target');
+    });
 }

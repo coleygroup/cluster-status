@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e1d1b">
+    <meta name="color-scheme" content="dark">
     <title>GPU Cluster Dashboard</title>
-    <!-- Google Fonts: DM Sans + DM Mono -->
+    <!-- Favicon - SVG for modern browsers (warm industrial palette) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e1d1b' width='100' height='100' rx='20'/><rect fill='%235b9a8b' x='15' y='25' width='70' height='12' rx='2'/><rect fill='%23c47a3a' x='15' y='44' width='50' height='12' rx='2'/><rect fill='%23c45c5c' x='15' y='63' width='30' height='12' rx='2'/></svg>">
+    <!-- Google Fonts: Nunito + Work Sans + IBM Plex Mono (industrial humanist stack) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom dashboard styles -->
@@ -18,8 +22,18 @@
     <header class="dashboard-header">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h4 mb-0">GPU Cluster Dashboard</h1>
-                <span class="badge bg-info" id="last-update">--</span>
+                <div class="header-left">
+                    <h1 class="h4 mb-0">
+                        <span class="status-dot" id="live-indicator"></span>
+                        GPU Cluster Dashboard
+                    </h1>
+                    <div class="cluster-summary" id="cluster-summary">
+                        <!-- Populated by JS: "6/8 servers online · 12/16 GPUs free" -->
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span class="update-badge" id="last-update">--</span>
+                </div>
             </div>
         </div>
     </header>
@@ -27,7 +41,7 @@
     <main class="container-fluid py-4">
         <!-- Summary Cards Section -->
         <section id="summary-section" class="mb-4">
-            <h2 class="h5 mb-3">Server Overview</h2>
+            <h2 class="section-header">Server Overview</h2>
             <div class="row g-3" id="summary-cards">
                 <!-- Server cards will be dynamically inserted here -->
                 <div class="col-12 text-center text-muted py-5">
@@ -39,7 +53,7 @@
 
         <!-- GPU Details Section -->
         <section id="details-section">
-            <h2 class="h5 mb-3">GPU Details</h2>
+            <h2 class="section-header">GPU Details</h2>
             <div id="gpu-details">
                 <!-- GPU detail panels will be dynamically inserted here -->
             </div>

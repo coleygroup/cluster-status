@@ -1,26 +1,37 @@
 /* ==========================================================================
-   GPU Cluster Dashboard Styles — Clean Slate Theme
-   Zinc-based dark theme with Tailwind-inspired status colors
+   GPU Cluster Dashboard Styles — Soft Industrial Theme
+   Warm dark greys, muted teal + burnt orange accents, humanist typography
    ========================================================================== */
 
 :root {
-    /* Clean Slate palette - Zinc-based */
-    --bg-dark: #18181b;
-    --bg-card: #27272a;
-    --bg-card-hover: #3f3f46;
-    --text-primary: #fafafa;
-    --text-secondary: #a1a1aa;
-    --border-color: transparent;
+    /* Warm dark grey palette */
+    --bg-dark: #1e1d1b;
+    --bg-card: #282725;
+    --bg-card-hover: #32302d;
+    --bg-inset: #1e1d1b;
+    --bg-panel: #242320;
+    --text-primary: #ede9e3;
+    --text-secondary: #b5afa6;
+    --text-tertiary: #706b63;
+    --border-color: rgba(237, 233, 227, 0.08);
+    --border-subtle: rgba(237, 233, 227, 0.08);
 
-    /* Status colors - Tailwind-inspired */
-    --status-free: #22c55e;
-    --status-partial: #eab308;
-    --status-busy: #ef4444;
-    --status-offline: #71717a;
+    /* Accent colors */
+    --accent-teal: #5b9a8b;
+    --accent-teal-light: #78b5a5;
+    --accent-orange: #c47a3a;
+    --accent-orange-light: #d4924e;
+
+    /* Status colors — muted industrial */
+    --status-free: #6a9e6b;
+    --status-partial: #c49a3a;
+    --status-busy: #c45c5c;
+    --status-offline: #706b63;
 
     /* Typography */
-    --font-sans: 'DM Sans', system-ui, sans-serif;
-    --font-mono: 'DM Mono', ui-monospace, monospace;
+    --font-display: 'Nunito', system-ui, sans-serif;
+    --font-sans: 'Work Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
     /* Spacing */
     --space-xs: 0.25rem;
@@ -29,17 +40,61 @@
     --space-lg: 1.5rem;
     --space-xl: 2rem;
 
-    /* Shadows */
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
-    --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.4);
+    /* Shadows — warm-tinted */
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-card-hover: 0 4px 16px rgba(196, 122, 58, 0.15), 0 2px 6px rgba(0,0,0,0.3);
+    --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bar: 0.6s ease-out;
 }
 
-/* Dark theme base */
+/* ---- Dark theme base with noise texture ---- */
+
 body {
-    background: linear-gradient(180deg, #18181b 0%, #09090b 100%);
+    background: linear-gradient(180deg, #1e1d1b 0%, #15140f 100%);
     color: var(--text-primary);
     font-family: var(--font-sans);
     min-height: 100vh;
+    position: relative;
+}
+
+/* Noise texture overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+}
+
+/* Industrial grid lines on body */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 79px,
+        rgba(237, 233, 227, 0.02) 79px,
+        rgba(237, 233, 227, 0.02) 80px
+    );
 }
 
 /* Monospace for technical elements */
@@ -50,13 +105,36 @@ body {
     font-family: var(--font-mono);
 }
 
-/* ---- Header (frosted glass) ---- */
+/* ---- Fade transition system ---- */
+
+.fade-container {
+    transition: opacity var(--transition-smooth);
+}
+
+.fade-container.fade-out {
+    opacity: 0;
+}
+
+/* ---- Page load stagger animation ---- */
+
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ---- Header (frosted glass with warm tint) ---- */
 
 .dashboard-header {
-    background-color: rgba(24, 24, 27, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(30, 29, 27, 0.85);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-bottom: 1px solid var(--border-subtle);
     padding: var(--space-md) var(--space-lg);
     position: sticky;
     top: 0;
@@ -65,14 +143,104 @@ body {
 
 .dashboard-header h1 {
     color: var(--text-primary);
-    font-weight: 600;
-    font-size: 1.125rem;
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Live indicator dot — teal pulse */
+.status-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: var(--accent-teal);
+    box-shadow: 0 0 8px rgba(91, 154, 139, 0.5);
+    animation: pulse-dot 2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.status-dot.stale {
+    background-color: var(--accent-orange);
+    box-shadow: 0 0 6px rgba(196, 122, 58, 0.4);
+    animation: none;
+}
+
+.status-dot.error {
+    background-color: var(--status-busy);
+    box-shadow: 0 0 6px rgba(196, 92, 92, 0.4);
+    animation: none;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(91, 154, 139, 0.5); }
+    50% { opacity: 0.5; box-shadow: 0 0 16px rgba(91, 154, 139, 0.3); }
+}
+
+/* Cluster summary line in header — larger, teal-highlighted numbers */
+.cluster-summary {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    margin-top: 3px;
+    letter-spacing: -0.01em;
+    min-height: 1.2em;
+}
+
+/* Updated badge — industrial pill with orange left accent */
+.update-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.65rem;
+    background-color: rgba(237, 233, 227, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--accent-orange);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .refresh-info .badge {
     font-weight: 400;
     font-size: 0.8rem;
+}
+
+/* ---- Section Headers — thick teal left bar + warm grey rule ---- */
+
+.section-header {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+    padding-left: 0.85rem;
+    border-left: 4px solid var(--accent-teal);
+    line-height: 1;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Horizontal rule extending right from section header */
+.section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(237, 233, 227, 0.1), transparent);
 }
 
 /* ---- Sticky Summary Section ---- */
@@ -81,7 +249,7 @@ body {
     position: sticky;
     top: 60px;
     z-index: 50;
-    background: linear-gradient(180deg, #18181b 85%, transparent 100%);
+    background: linear-gradient(180deg, #1e1d1b 85%, transparent 100%);
     padding-bottom: var(--space-lg);
     margin-bottom: var(--space-md);
 }
@@ -90,57 +258,76 @@ body {
 
 .server-card {
     background-color: var(--bg-card);
-    border: none;
-    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
     padding: var(--space-lg);
-    box-shadow: var(--shadow-card);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-card), var(--shadow-inset);
+    transition:
+        transform var(--transition-base),
+        box-shadow var(--transition-base),
+        background-color var(--transition-base),
+        border-color var(--transition-base);
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    animation: card-enter 0.4s ease both;
 }
 
-/* Hover glow effect using pseudo-element */
-.server-card::before {
+/* Stagger animation delay via nth-child on parent cols */
+.row > :nth-child(1) .server-card { animation-delay: 0ms; }
+.row > :nth-child(2) .server-card { animation-delay: 50ms; }
+.row > :nth-child(3) .server-card { animation-delay: 100ms; }
+.row > :nth-child(4) .server-card { animation-delay: 150ms; }
+.row > :nth-child(5) .server-card { animation-delay: 200ms; }
+.row > :nth-child(6) .server-card { animation-delay: 250ms; }
+.row > :nth-child(7) .server-card { animation-delay: 300ms; }
+.row > :nth-child(8) .server-card { animation-delay: 350ms; }
+
+/* Micro corner-mark — tiny teal square in top-right */
+.server-card::after {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
     right: 0;
-    bottom: 0;
-    border-radius: 12px;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    pointer-events: none;
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent-teal);
+    opacity: 0.4;
+    transition: opacity var(--transition-fast);
 }
 
-.server-card.status-online::before {
-    box-shadow: inset 0 0 0 1px var(--status-free), 0 0 20px rgba(34, 197, 94, 0.15);
+.server-card:hover::after {
+    opacity: 0.8;
 }
 
-.server-card.status-offline::before {
-    box-shadow: inset 0 0 0 1px var(--status-offline), 0 0 20px rgba(113, 113, 122, 0.15);
-}
-
+/* Hover: subtle orange glow + minimal Y translation */
 .server-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(196, 122, 58, 0.12), 0 0 24px rgba(196, 122, 58, 0.06);
     background-color: var(--bg-card-hover);
-}
-
-.server-card:hover::before {
-    opacity: 1;
 }
 
 /* Active/pressed state */
 .server-card:active {
-    transform: translateY(-2px) scale(1.01);
+    transform: translateY(-1px);
     transition: transform 0.1s ease;
 }
 
-/* Status indicator: colored left accent bar with hover expansion */
+/* Selected state — persistent highlight */
+.server-card.is-selected {
+    background-color: var(--bg-card-hover);
+    border-color: rgba(91, 154, 139, 0.3);
+}
+
+.server-card.is-selected::after {
+    opacity: 1;
+    width: 8px;
+    height: 8px;
+}
+
+/* Status indicator: thicker colored left accent bar (4px) */
 .server-card.status-online {
-    border-left: 3px solid var(--status-free);
+    border-left: 4px solid var(--accent-teal);
 }
 
 .server-card.status-online:hover {
@@ -148,24 +335,37 @@ body {
 }
 
 .server-card.status-offline {
-    border-left: 3px solid var(--status-offline);
-    opacity: 0.6;
+    border-left: 4px solid var(--status-offline);
+    opacity: 0.65;
 }
 
 .server-card.status-offline:hover {
     border-left-width: 5px;
-    opacity: 0.8;
+    opacity: 0.85;
+}
+
+.server-card.status-offline::after {
+    background-color: var(--status-offline);
 }
 
 .server-card .server-name {
     font-weight: 600;
     font-size: 1rem;
     margin-bottom: 0.25rem;
+    color: var(--text-primary);
 }
 
 .server-card .server-status {
     font-size: 0.75rem;
     color: var(--text-secondary);
+}
+
+/* Card divider — dotted, warm tone */
+.server-card .card-divider {
+    height: 1px;
+    border-top: 1px dotted rgba(237, 233, 227, 0.12);
+    background: none;
+    margin: 0.6rem 0;
 }
 
 .server-card .metric-row {
@@ -183,6 +383,7 @@ body {
 .server-card .metric-value {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
 }
 
 /* GPU availability badge in summary card */
@@ -192,33 +393,52 @@ body {
     border-radius: 4px;
     font-size: 0.8rem;
     font-weight: 600;
+    font-family: var(--font-mono);
 }
 
 .gpu-avail-badge.all-free {
-    background-color: rgba(34, 197, 94, 0.2);
+    background-color: rgba(106, 158, 107, 0.2);
     color: var(--status-free);
 }
 
 .gpu-avail-badge.some-free {
-    background-color: rgba(234, 179, 8, 0.2);
+    background-color: rgba(196, 154, 58, 0.2);
     color: var(--status-partial);
 }
 
 .gpu-avail-badge.none-free {
-    background-color: rgba(239, 68, 68, 0.2);
+    background-color: rgba(196, 92, 92, 0.2);
     color: var(--status-busy);
 }
 
 /* ---- GPU Detail Panels ---- */
 
 .server-detail-panel {
-    background-color: var(--bg-card);
-    border: none;
-    border-radius: 12px;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
     box-shadow: var(--shadow-card);
     scroll-margin-top: 340px;
+    transition: border-color var(--transition-smooth);
+    animation: card-enter 0.5s ease both;
+}
+
+/* Left accent matching status */
+.server-detail-panel.status-online {
+    border-left: 4px solid var(--accent-teal);
+}
+
+.server-detail-panel.status-offline {
+    border-left: 4px solid var(--status-offline);
+}
+
+/* Highlight when scrolled-to */
+.server-detail-panel.is-target {
+    border-left-width: 5px;
+    border-color: rgba(91, 154, 139, 0.25);
+    border-left-color: var(--accent-teal-light);
 }
 
 .server-detail-panel .panel-header {
@@ -227,61 +447,129 @@ body {
     align-items: center;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 2px solid rgba(91, 154, 139, 0.2);
 }
 
 .server-detail-panel .panel-title {
     font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 1.05rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
 }
 
-.gpu-card {
-    background-color: var(--bg-dark);
+/* Custom status badge (not Bootstrap .badge) — rounded pill, warm colors */
+.server-detail-panel .badge {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
     border: none;
-    border-radius: 10px;
+}
+
+.server-detail-panel .badge.bg-success {
+    background-color: rgba(106, 158, 107, 0.2) !important;
+    color: var(--status-free);
+}
+
+.server-detail-panel .badge.bg-secondary {
+    background-color: rgba(112, 107, 99, 0.25) !important;
+    color: var(--status-offline);
+}
+
+/* ---- GPU Cards ---- */
+
+.gpu-card {
+    background-color: var(--bg-inset);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
     padding: var(--space-md);
+    transition: border-color var(--transition-fast);
+}
+
+.gpu-card:hover {
+    border-color: rgba(91, 154, 139, 0.3);
 }
 
 .gpu-card .gpu-name {
+    font-family: var(--font-sans);
     font-weight: 500;
     font-size: 0.85rem;
     color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }
 
+/* GPU index — industrial teal monospace bold label */
 .gpu-card .gpu-index {
-    font-weight: 600;
-    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent-teal);
 }
 
-/* ---- Memory Bar (pill-shaped, gradient fills) ---- */
+/* ---- Bar base (shared by memory & util bars) ---- */
 
-.memory-bar-container {
+.bar-container {
     width: 100%;
-    height: 28px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 9999px;
+    background-color: rgba(237, 233, 227, 0.05);
+    border-radius: 4px;
     overflow: hidden;
     position: relative;
 }
 
+.bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--transition-bar);
+}
+
+.bar-fill.level-free {
+    background: linear-gradient(90deg, #4d8e6e 0%, #6a9e6b 100%);
+}
+
+.bar-fill.level-partial {
+    background: linear-gradient(90deg, #b08930 0%, #c49a3a 100%);
+}
+
+.bar-fill.level-busy {
+    background: linear-gradient(90deg, #a84a4a 0%, #c45c5c 100%);
+}
+
+/* ---- Memory Bar (industrial pill, muted fills) ---- */
+
+.memory-bar-container {
+    width: 100%;
+    height: 28px;
+    background-color: rgba(237, 233, 227, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    /* Subtle hatched texture on bar background */
+    background-image: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 3px,
+        rgba(237, 233, 227, 0.015) 3px,
+        rgba(237, 233, 227, 0.015) 4px
+    );
+}
+
 .memory-bar-fill {
     height: 100%;
-    border-radius: 9999px;
-    transition: width 0.5s ease;
+    border-radius: 4px;
+    transition: width var(--transition-bar);
 }
 
 .memory-bar-fill.level-free {
-    background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    background: linear-gradient(90deg, #4d8e6e 0%, #5b9a8b 100%);
 }
 
 .memory-bar-fill.level-partial {
-    background: linear-gradient(90deg, #ca8a04 0%, #eab308 100%);
+    background: linear-gradient(90deg, #b08930 0%, #c49a3a 100%);
 }
 
 .memory-bar-fill.level-busy {
-    background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(90deg, #a84a4a 0%, #c45c5c 100%);
 }
 
 .memory-bar-label {
@@ -289,15 +577,65 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
     font-weight: 500;
     letter-spacing: -0.01em;
     color: var(--text-primary);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
     white-space: nowrap;
 }
 
-/* ---- Utilization indicator ---- */
+/* ---- Utilization bar (thicker, 8px) ---- */
+
+.util-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(237, 233, 227, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 0.35rem;
+}
+
+.util-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--transition-bar);
+}
+
+.util-bar-fill.level-free {
+    background: linear-gradient(90deg, #4d8e6e 0%, #6a9e6b 100%);
+}
+
+.util-bar-fill.level-partial {
+    background: linear-gradient(90deg, #b08930 0%, #c49a3a 100%);
+}
+
+.util-bar-fill.level-busy {
+    background: linear-gradient(90deg, #a84a4a 0%, #c45c5c 100%);
+}
+
+.bar-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+.bar-label-row .bar-label-title {
+    font-weight: 400;
+}
+
+.bar-label-row .bar-label-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- Utilization indicator (badge) ---- */
 
 .util-badge {
     display: inline-block;
@@ -306,20 +644,21 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
 }
 
 .util-badge.level-free {
-    background-color: rgba(34, 197, 94, 0.2);
+    background-color: rgba(106, 158, 107, 0.2);
     color: var(--status-free);
 }
 
 .util-badge.level-partial {
-    background-color: rgba(234, 179, 8, 0.2);
+    background-color: rgba(196, 154, 58, 0.2);
     color: var(--status-partial);
 }
 
 .util-badge.level-busy {
-    background-color: rgba(239, 68, 68, 0.2);
+    background-color: rgba(196, 92, 92, 0.2);
     color: var(--status-busy);
 }
 
@@ -338,21 +677,54 @@ body {
     color: var(--text-secondary);
 }
 
+/* Username in burnt orange — distinctive, easy to spot */
 .user-list .user-entry .username {
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--accent-orange-light);
 }
 
+/* Empty user state — dashed industrial placeholder */
 .user-list .no-users {
-    color: var(--text-secondary);
-    font-style: italic;
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.01em;
+    padding: 0.3rem 0;
+    border-top: 1px dashed rgba(237, 233, 227, 0.1);
+    margin-top: 0.35rem;
+}
+
+/* ---- Bootstrap overrides for warm theme ---- */
+
+.text-success {
+    color: var(--status-free) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-danger {
+    color: var(--status-busy) !important;
+}
+
+.text-muted {
+    color: var(--text-tertiary) !important;
+}
+
+.spinner-border {
+    color: var(--accent-teal);
 }
 
 /* ---- Responsive adjustments ---- */
 
 @media (max-width: 576px) {
     .dashboard-header h1 {
-        font-size: 1rem;
+        font-size: 1.05rem;
+    }
+
+    .cluster-summary {
+        font-size: 0.72rem;
     }
 
     .server-card {

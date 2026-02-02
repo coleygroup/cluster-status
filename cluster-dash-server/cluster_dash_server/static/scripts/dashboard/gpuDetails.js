@@ -2,21 +2,20 @@
  * gpuDetails.js - Render the per-server GPU detail panels
  *
  * This module creates the bottom section of the dashboard showing
- * detailed GPU information for each server, including memory bars
- * and user lists.
+ * detailed GPU information for each server, including memory bars,
+ * utilization bars, and user lists.
  */
 
 import { formatMemory, getUsageLevel, escapeHtml } from './utils.js';
 
 /**
  * Render GPU detail panels for all servers.
+ * Uses fade transition to avoid jarring refresh.
  *
  * @param {HTMLElement} container - The DOM element to render panels into
  * @param {Object} servers - Server data from the API
  */
 export function renderGpuDetails(container, servers) {
-    container.innerHTML = '';
-
     const serverNames = Object.keys(servers).sort();
 
     if (serverNames.length === 0) {
@@ -28,11 +27,23 @@ export function renderGpuDetails(container, servers) {
         return;
     }
 
+    // Build new content
+    const fragment = document.createDocumentFragment();
     serverNames.forEach(hostname => {
         const server = servers[hostname];
         const panel = createServerPanel(hostname, server);
-        container.appendChild(panel);
+        fragment.appendChild(panel);
     });
+
+    // Fade out, swap content, fade in
+    container.classList.add('fade-container');
+    container.classList.add('fade-out');
+
+    setTimeout(() => {
+        container.innerHTML = '';
+        container.appendChild(fragment);
+        container.classList.remove('fade-out');
+    }, 150);
 }
 
 /**
@@ -44,7 +55,7 @@ export function renderGpuDetails(container, servers) {
  */
 function createServerPanel(hostname, server) {
     const panel = document.createElement('div');
-    panel.className = 'server-detail-panel';
+    panel.className = `server-detail-panel status-${server.status}`;
     panel.id = `server-${hostname}`;
 
     const statusBadge = server.status === 'online'
@@ -76,7 +87,8 @@ function createServerPanel(hostname, server) {
 }
 
 /**
- * Create a card for a single GPU showing memory bar and user info.
+ * Create a card for a single GPU showing memory bar, utilization bar,
+ * and user info.
  *
  * @param {Object} gpu - GPU data object
  * @returns {HTMLElement} - Column element wrapping the GPU card
@@ -112,10 +124,15 @@ function createGpuCard(gpu) {
                 <span class="memory-bar-label">${memLabel}</span>
             </div>
 
-            <!-- GPU utilization -->
-            <div class="d-flex justify-content-between align-items-center mt-2">
-                <span class="text-secondary" style="font-size: 0.78rem;">GPU Util</span>
-                <span class="util-badge level-${utilLevel}">${gpu.gpu_util}%</span>
+            <!-- GPU utilization bar (thin) -->
+            <div class="util-bar-container" title="GPU Util: ${gpu.gpu_util}%">
+                <div class="util-bar-fill level-${utilLevel}"
+                     style="width: ${gpu.gpu_util}%">
+                </div>
+            </div>
+            <div class="bar-label-row">
+                <span class="bar-label-title">GPU Util</span>
+                <span class="bar-label-value">${gpu.gpu_util}%</span>
             </div>
 
             <!-- User list -->
@@ -136,7 +153,7 @@ function buildUserList(users) {
     const userEntries = Object.entries(users || {});
 
     if (userEntries.length === 0) {
-        return `<div class="user-list"><span class="no-users">No active users</span></div>`;
+        return `<div class="user-list"><span class="no-users">&mdash; idle</span></div>`;
     }
 
     const items = userEntries.map(([username, info]) => {
