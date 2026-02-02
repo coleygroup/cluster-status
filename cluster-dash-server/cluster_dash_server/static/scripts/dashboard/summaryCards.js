@@ -83,17 +83,36 @@ function createServerCard(hostname, server) {
             </div>
 
             <div class="metric-row">
+                <span class="metric-label">Avg GPU Util</span>
+                <span class="metric-value">${summary.avg_gpu_util ?? 0}%</span>
+            </div>
+
+            <div class="metric-row">
                 <span class="metric-label">Avg GPU Mem</span>
                 <span class="metric-value">${summary.avg_gpu_memory_percent}%</span>
             </div>
         </div>
     `;
 
-    // Make card clickable - scroll to detail panel
+    // Make card clickable - scroll to detail panel with proper offset
     col.querySelector('.server-card').addEventListener('click', () => {
         const detailPanel = document.getElementById(`server-${hostname}`);
         if (detailPanel) {
-            detailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Calculate the actual height of sticky elements
+            const header = document.querySelector('.dashboard-header');
+            const summarySection = document.getElementById('summary-section');
+            const headerHeight = header ? header.offsetHeight : 60;
+            const summaryHeight = summarySection ? summarySection.offsetHeight : 200;
+            const totalOffset = headerHeight + summaryHeight + 16; // 16px extra padding
+
+            // Calculate target scroll position
+            const targetY = detailPanel.getBoundingClientRect().top + window.scrollY - totalOffset;
+
+            // Smooth scroll to calculated position
+            window.scrollTo({
+                top: targetY,
+                behavior: 'smooth'
+            });
         }
     });
 

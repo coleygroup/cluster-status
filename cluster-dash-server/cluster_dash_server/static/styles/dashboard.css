@@ -94,23 +94,67 @@ body {
     border-radius: 12px;
     padding: var(--space-lg);
     box-shadow: var(--shadow-card);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover glow effect using pseudo-element */
+.server-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.server-card.status-online::before {
+    box-shadow: inset 0 0 0 1px var(--status-free), 0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+.server-card.status-offline::before {
+    box-shadow: inset 0 0 0 1px var(--status-offline), 0 0 20px rgba(113, 113, 122, 0.15);
 }
 
 .server-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px) scale(1.02);
     box-shadow: var(--shadow-card-hover);
+    background-color: var(--bg-card-hover);
 }
 
-/* Status indicator: colored left accent bar */
+.server-card:hover::before {
+    opacity: 1;
+}
+
+/* Active/pressed state */
+.server-card:active {
+    transform: translateY(-2px) scale(1.01);
+    transition: transform 0.1s ease;
+}
+
+/* Status indicator: colored left accent bar with hover expansion */
 .server-card.status-online {
     border-left: 3px solid var(--status-free);
+}
+
+.server-card.status-online:hover {
+    border-left-width: 5px;
 }
 
 .server-card.status-offline {
     border-left: 3px solid var(--status-offline);
     opacity: 0.6;
+}
+
+.server-card.status-offline:hover {
+    border-left-width: 5px;
+    opacity: 0.8;
 }
 
 .server-card .server-name {
@@ -174,7 +218,7 @@ body {
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
     box-shadow: var(--shadow-card);
-    scroll-margin-top: 200px;
+    scroll-margin-top: 340px;
 }
 
 .server-detail-panel .panel-header {

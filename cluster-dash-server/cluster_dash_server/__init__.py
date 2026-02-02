@@ -252,6 +252,11 @@ def create_app(test_config=None):
                 round(sum(memory_percentages) / len(memory_percentages))
                 if memory_percentages else 0
             )
+            gpu_utils = [gpu["gpu_util"] for gpu in gpus]
+            avg_gpu_util = (
+                round(sum(gpu_utils) / len(gpu_utils))
+                if gpu_utils else 0
+            )
 
             servers[hostname] = {
                 "status": status,
@@ -261,7 +266,8 @@ def create_app(test_config=None):
                 "summary": {
                     "total_gpus": total_gpus,
                     "free_gpus": free_gpus,
-                    "avg_gpu_memory_percent": avg_memory_percent
+                    "avg_gpu_memory_percent": avg_memory_percent,
+                    "avg_gpu_util": avg_gpu_util
                 }
             }
 
