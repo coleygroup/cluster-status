@@ -718,6 +718,118 @@ body::after {
 
 /* ---- Responsive adjustments ---- */
 
+/* ---- Header Navigation ---- */
+
+.header-nav {
+    display: flex;
+    gap: 1rem;
+    margin-top: 4px;
+}
+
+.header-nav .nav-link {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 0;
+    border-bottom: 2px solid transparent;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.header-nav .nav-link:hover {
+    color: var(--text-secondary);
+}
+
+.header-nav .nav-link.active {
+    color: var(--accent-teal);
+    border-bottom-color: var(--accent-teal);
+}
+
+/* ---- Waste Report Hero ---- */
+
+.waste-hero {
+    text-align: center;
+    padding: var(--space-xl) 0;
+}
+
+.waste-headline {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--accent-orange-light);
+    margin-bottom: var(--space-sm);
+    letter-spacing: -0.01em;
+}
+
+.waste-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ---- Chart Panels ---- */
+
+.chart-panel {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    height: 350px;
+}
+
+/* ---- Time Range Selector ---- */
+
+.time-range-select {
+    background-color: rgba(237, 233, 227, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--accent-teal);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.3rem 0.65rem;
+}
+
+.time-range-select option {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+/* ---- Stats Cards ---- */
+
+.stat-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: var(--space-lg);
+    text-align: center;
+    box-shadow: var(--shadow-card);
+}
+
+.stat-card .stat-value {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--accent-orange-light);
+}
+
+.stat-card .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.25rem;
+}
+
+/* ---- Responsive ---- */
+
 @media (max-width: 576px) {
     .dashboard-header h1 {
         font-size: 1.05rem;
@@ -737,5 +849,13 @@ body::after {
 
     #summary-section {
         top: 50px;
+    }
+
+    .waste-headline {
+        font-size: 1.3rem;
+    }
+
+    .chart-panel {
+        height: 250px;
     }
 }
