@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e1d1b">
+    <meta name="color-scheme" content="dark">
+    <title>A Wasted GPU is a Wasted PhD</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e1d1b' width='100' height='100' rx='20'/><rect fill='%235b9a8b' x='15' y='25' width='70' height='12' rx='2'/><rect fill='%23c47a3a' x='15' y='44' width='50' height='12' rx='2'/><rect fill='%23c45c5c' x='15' y='63' width='30' height='12' rx='2'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/styles/dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="header-left">
+                    <h1 class="h4 mb-0">
+                        <span class="status-dot"></span>
+                        GPU Cluster Dashboard
+                    </h1>
+                    <nav class="header-nav">
+                        <a href="/" class="nav-link">Live</a>
+                        <a href="/history" class="nav-link active">History</a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <select id="time-range" class="time-range-select">
+                        <option value="6">Last 6 hours</option>
+                        <option value="24" selected>Last 24 hours</option>
+                        <option value="72">Last 3 days</option>
+                        <option value="168">Last 7 days</option>
+                        <option value="720">Last 30 days</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid py-4">
+        <section class="waste-hero mb-4">
+            <h2 class="waste-headline">A Wasted GPU is a Wasted PhD</h2>
+            <p class="waste-subtitle" id="waste-subtitle">Loading usage history...</p>
+        </section>
+
+        <section class="mb-4">
+            <h2 class="section-header">The Damage Report</h2>
+            <div class="row g-3" id="waste-stats"></div>
+        </section>
+
+        <section class="mb-4">
+            <h2 class="section-header">Free GPUs Over Time</h2>
+            <div class="chart-panel">
+                <canvas id="free-gpus-chart"></canvas>
+            </div>
+        </section>
+
+        <section class="mb-4">
+            <h2 class="section-header">Per-Server Breakdown</h2>
+            <div class="chart-panel">
+                <canvas id="server-breakdown-chart"></canvas>
+            </div>
+        </section>
+
+        <section class="mb-4">
+            <h2 class="section-header">Cluster Utilization</h2>
+            <div class="chart-panel">
+                <canvas id="utilization-chart"></canvas>
+            </div>
+        </section>
+
+        <div class="text-center py-3" id="empty-state" style="display: none;">
+            <p class="text-muted">Collecting data... Check back in a few hours for your first waste report.</p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script type="module" src="/static/scripts/history/main.js"></script>
+</body>
+</html>

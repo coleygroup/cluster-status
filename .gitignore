@@ -20,5 +20,8 @@ Thumbs.db
 dist/
 build/
 
+# SQLite databases
+*.db
+
 # uv lock files (optional - can be committed for reproducibility)
 # uv.lock
