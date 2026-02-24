@@ -1,14 +1,16 @@
 """
 GPU Cluster Dashboard - Flask Application
 
-A single-page monitoring dashboard for GPU servers.
-Receives data via POST from cluster-dash-mole agents and displays
-real-time status in a responsive web interface.
+A monitoring dashboard for GPU servers with live status and usage history.
+Receives data via POST from cluster-dash-mole agents, stores snapshots
+in SQLite for historical tracking, and displays everything in a web UI.
 
 Routes:
     POST /              - Data ingestion endpoint (from mole agents)
-    GET  /              - Serve the dashboard HTML
-    GET  /api/dashboard-data   - JSON API for dashboard data
+    GET  /              - Serve the live dashboard
+    GET  /history       - GPU usage history / waste report
+    GET  /api/dashboard-data   - JSON API for live dashboard data
+    GET  /api/history-data     - JSON API for historical time-series
     GET  /api/gpu-summary      - CLI-friendly text summary (with ANSI colors)
     GET  /data-out/gpu-data-simple - Legacy API (kept for compatibility)
 """
@@ -29,8 +31,8 @@ from flask import (
 )
 from werkzeug.exceptions import BadRequest
 
+from . import history
 
-# Cache for the JSON schema
 _machine_post_schema = None
 
 
@@ -56,12 +58,12 @@ def create_app(test_config=None):
     stored_results_ = {}
 
     if test_config is None:
-        # Load the instance config, if it exists, when not testing
         app.config.from_pyfile("config.py", silent=True)
         print(app.config)
     else:
-        # Load the test config if passed in
         app.config.from_mapping(test_config)
+
+    history.init_db(app)
 
     @app.errorhandler(400)
     def resource_not_found(e):
@@ -95,6 +97,12 @@ def create_app(test_config=None):
 
             json_back["received_timestamp"] = time.time()
             stored_results_[json_back["hostname"]] = json_back
+
+            try:
+                history.record_snapshot(json_back["hostname"], json_back)
+            except Exception as e:
+                print(f"History recording error: {e}")
+
             return jsonify({"success": True, "msg": "stored result"})
 
         else:
@@ -274,6 +282,26 @@ def create_app(test_config=None):
         return jsonify({
             "timestamp": current_time,
             "servers": servers
+        })
+
+    @app.route("/history")
+    def history_page():
+        """Serve the GPU usage history page."""
+        return render_template("history.html")
+
+    @app.route("/api/history-data")
+    def history_data():
+        """JSON API for historical GPU usage time-series."""
+        hours = request.args.get("hours", 24, type=int)
+
+        series = history.query_cluster_history(hours=hours)
+        stats = history.query_waste_stats(hours=hours)
+
+        return jsonify({
+            "hours": hours,
+            "series": series,
+            "stats": stats,
+            "generated_at": time.time(),
         })
 
     return app
