@@ -41,15 +41,41 @@ class MainRunner(object):
             time.sleep(settings["Poll_Settings"]["poll_interval_in_secs"])
 
     def get_data(self):
+        log = logging_utils.get_log()
 
         # Machine data
         results = self.machine_data.get_all_data_as_dict()
 
         # add CPU data
-        results["cpu"] = self.cpu_data.get_all_data_as_dict()
+        try:
+            results["cpu"] = self.cpu_data.get_all_data_as_dict()
+        except Exception as ex:
+            log.warning(f"CPU data collection failed: {ex}")
+            results["cpu"] = {
+                "cpu_percent": 0,
+                "load_avgs": [0, 0, 0],
+                "num_cpus": 0,
+                "error": str(ex),
+            }
 
         # add GPU data
-        results["gpu"] = self.gpu_data.get_all_data_as_dict()
+        try:
+            results["gpu"] = self.gpu_data.get_all_data_as_dict()
+        except Exception as ex:
+            log.warning(f"GPU data collection failed: {ex}")
+            results["gpu"] = {
+                "gpu_error": {
+                    "name": "error",
+                    "uuid": "none",
+                    "index": 0,
+                    "total_mem": 0,
+                    "used_mem": 0,
+                    "users": {},
+                    "gpu_util": 0,
+                    "memory_util": 0,
+                    "error": str(ex),
+                }
+            }
 
         return results
 

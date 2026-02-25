@@ -73,13 +73,26 @@ function createServerPanel(hostname, server) {
 
     // Add a card for each GPU
     const gpuGrid = panel.querySelector('.gpu-grid');
+
+    // Show GPU error banner if present
+    if (server.gpu_error) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'col-12';
+        errorDiv.innerHTML = `
+            <div class="gpu-error-banner">
+                <strong>GPU Driver Error</strong> &mdash; ${escapeHtml(server.gpu_error)}
+            </div>
+        `;
+        gpuGrid.appendChild(errorDiv);
+    }
+
     server.gpus.forEach(gpu => {
         const gpuCol = createGpuCard(gpu);
         gpuGrid.appendChild(gpuCol);
     });
 
-    // If no GPUs, show message
-    if (server.gpus.length === 0) {
+    // If no GPUs and no error, show message
+    if (server.gpus.length === 0 && !server.gpu_error) {
         gpuGrid.innerHTML = '<div class="col-12 text-muted ps-2">No GPU data</div>';
     }
 

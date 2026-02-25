@@ -35,13 +35,14 @@ def init_nvml_if_required(fn):
         else:
             initing_nvml = False
 
-        # can now call the function!
-        result = fn(cls, *args, **kwargs)
-
-        # if we initialized it earlier then we will shut it down now and mark it as so.
-        if initing_nvml:
-            pynvml.nvmlShutdown()
-            cls.nvml_inited = False
+        try:
+            # can now call the function!
+            result = fn(cls, *args, **kwargs)
+        finally:
+            # if we initialized it earlier then we will shut it down now and mark it as so.
+            if initing_nvml:
+                pynvml.nvmlShutdown()
+                cls.nvml_inited = False
 
         return result
     return wrapped_func
@@ -87,10 +88,28 @@ class GPUData:
         return name, uuid, index
 
     @classmethod
-    @init_nvml_if_required
     def get_all_data_as_dict(cls):
 
         results = {}
+
+        try:
+            pynvml.nvmlInit()
+            cls.nvml_inited = True
+        except pynvml.NVMLError as ex:
+            log = logging_utils.get_log()
+            log.warning(f"NVML init failed: {ex}")
+            results["gpu_error"] = {
+                "name": "error",
+                "uuid": "none",
+                "index": 0,
+                "total_mem": 0,
+                "used_mem": 0,
+                "users": {},
+                "gpu_util": 0,
+                "memory_util": 0,
+                "error": str(ex),
+            }
+            return results
 
         try:
             for i, handle in enumerate(cls.get_devices()):
@@ -117,17 +136,27 @@ class GPUData:
                     "gpu_util": gpu_util,
                     "memory_util": memory_util,
                 }
-        except pynvml.NVMLError_LibraryNotFound:
-            results["gpu_data"] = {
-                    "name": "none",
-                    "uuid": "none",
-                    "index": 0,
-                    "total_mem": 0,
-                    "used_mem": 0,
-                    "users": {},
-                    "gpu_util": 0,
-                    "memory_util": 0,
-                }
+        except pynvml.NVMLError as ex:
+            log = logging_utils.get_log()
+            log.warning(f"NVML error during GPU data collection: {ex}")
+            results["gpu_error"] = {
+                "name": "error",
+                "uuid": "none",
+                "index": 0,
+                "total_mem": 0,
+                "used_mem": 0,
+                "users": {},
+                "gpu_util": 0,
+                "memory_util": 0,
+                "error": str(ex),
+            }
+        finally:
+            try:
+                pynvml.nvmlShutdown()
+            except pynvml.NVMLError:
+                pass
+            cls.nvml_inited = False
+
         return results
 
     @classmethod

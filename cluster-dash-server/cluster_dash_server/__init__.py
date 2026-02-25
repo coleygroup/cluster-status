@@ -231,8 +231,14 @@ def create_app(test_config=None):
             gpu_dict = results.get("gpu", {})
             gpus = []
             memory_percentages = []
+            gpu_error = None
 
             for gpu_key, gpu_info in gpu_dict.items():
+                # Check if this entry is an error report
+                if gpu_info.get("error") or gpu_info.get("name") == "error":
+                    gpu_error = gpu_info.get("error", "Unknown GPU error")
+                    continue
+
                 total_mem = gpu_info.get("total_mem", 0)
                 used_mem = gpu_info.get("used_mem", 0)
                 memory_percent = round((used_mem / total_mem) * 100) if total_mem > 0 else 0
@@ -266,7 +272,7 @@ def create_app(test_config=None):
                 if gpu_utils else 0
             )
 
-            servers[hostname] = {
+            server_data = {
                 "status": status,
                 "last_seen_mins": last_seen_mins,
                 "cpu": cpu_info,
@@ -278,6 +284,10 @@ def create_app(test_config=None):
                     "avg_gpu_util": avg_gpu_util
                 }
             }
+            if gpu_error:
+                server_data["gpu_error"] = gpu_error
+
+            servers[hostname] = server_data
 
         return jsonify({
             "timestamp": current_time,

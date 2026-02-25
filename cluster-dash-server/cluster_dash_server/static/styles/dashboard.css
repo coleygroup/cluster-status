@@ -411,6 +411,44 @@ body::after {
     color: var(--status-busy);
 }
 
+.gpu-avail-badge.level-error {
+    background-color: rgba(196, 92, 92, 0.25);
+    color: var(--status-busy);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+}
+
+/* GPU error state on server card */
+.server-card.has-gpu-error {
+    border-left-color: var(--status-busy) !important;
+}
+
+.server-card.has-gpu-error::after {
+    background-color: var(--status-busy);
+}
+
+.gpu-error-text {
+    color: var(--status-busy) !important;
+    font-size: 0.75rem;
+}
+
+/* GPU error banner in detail panel */
+.gpu-error-banner {
+    background-color: rgba(196, 92, 92, 0.12);
+    border: 1px solid rgba(196, 92, 92, 0.3);
+    border-left: 4px solid var(--status-busy);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+}
+
+.gpu-error-banner strong {
+    color: var(--status-busy);
+}
+
 /* ---- GPU Detail Panels ---- */
 
 .server-detail-panel {

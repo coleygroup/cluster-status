@@ -65,33 +65,27 @@ export function renderSummaryCards(container, servers) {
  * @returns {HTMLElement} - The card wrapper element (col div)
  */
 function createServerCard(hostname, server) {
-    const { status, last_seen_mins, cpu, summary } = server;
+    const { status, last_seen_mins, cpu, summary, gpu_error } = server;
 
     // Determine GPU availability class
-    const availLevel = getAvailabilityLevel(summary.free_gpus, summary.total_gpus);
+    const availLevel = gpu_error ? 'level-error' : getAvailabilityLevel(summary.free_gpus, summary.total_gpus);
 
     // Create wrapper column
     const col = document.createElement('div');
     col.className = 'col-6 col-sm-4 col-md-3 col-xl-2';
 
-    // Build the card HTML with divider separating identity from metrics
-    col.innerHTML = `
-        <div class="server-card status-${status}" data-hostname="${escapeHtml(hostname)}">
-            <div class="server-name">${escapeHtml(hostname)}</div>
-            <div class="server-status">
-                ${status === 'online'
-                    ? `<span class="text-success">Online</span> &middot; ${formatDuration(last_seen_mins)}`
-                    : `<span class="text-secondary">Offline</span> &middot; ${formatDuration(last_seen_mins)}`
-                }
-            </div>
-
-            <div class="card-divider"></div>
-
+    // GPU metrics section - show error or normal stats
+    const gpuMetrics = gpu_error
+        ? `
             <div class="metric-row">
-                <span class="metric-label">CPU</span>
-                <span class="metric-value">${cpu.cpu_percent}%</span>
+                <span class="metric-label">GPUs</span>
+                <span class="gpu-avail-badge level-error">ERROR</span>
             </div>
-
+            <div class="metric-row">
+                <span class="metric-label gpu-error-text">Driver error</span>
+            </div>
+        `
+        : `
             <div class="metric-row">
                 <span class="metric-label">GPUs</span>
                 <span class="gpu-avail-badge ${availLevel}">
@@ -108,6 +102,27 @@ function createServerCard(hostname, server) {
                 <span class="metric-label">Avg GPU Mem</span>
                 <span class="metric-value">${summary.avg_gpu_memory_percent}%</span>
             </div>
+        `;
+
+    // Build the card HTML with divider separating identity from metrics
+    col.innerHTML = `
+        <div class="server-card status-${status}${gpu_error ? ' has-gpu-error' : ''}" data-hostname="${escapeHtml(hostname)}">
+            <div class="server-name">${escapeHtml(hostname)}</div>
+            <div class="server-status">
+                ${status === 'online'
+                    ? `<span class="text-success">Online</span> &middot; ${formatDuration(last_seen_mins)}`
+                    : `<span class="text-secondary">Offline</span> &middot; ${formatDuration(last_seen_mins)}`
+                }
+            </div>
+
+            <div class="card-divider"></div>
+
+            <div class="metric-row">
+                <span class="metric-label">CPU</span>
+                <span class="metric-value">${cpu.cpu_percent}%</span>
+            </div>
+
+            ${gpuMetrics}
         </div>
     `;
 
