@@ -72,7 +72,7 @@ function createServerCard(hostname, server) {
 
     // Create wrapper column
     const col = document.createElement('div');
-    col.className = 'col-6 col-sm-4 col-md-3 col-xl-2';
+    col.className = 'summary-card-item';
 
     // GPU metrics section - show error or normal stats
     const gpuMetrics = gpu_error

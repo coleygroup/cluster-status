@@ -247,11 +247,76 @@ body::after {
 
 #summary-section {
     position: sticky;
-    top: 60px;
+    top: var(--header-height, 60px);
     z-index: 50;
-    background: linear-gradient(180deg, #1e1d1b 85%, transparent 100%);
-    padding-bottom: var(--space-lg);
+    background-color: #1e1d1b;
+    padding-top: var(--space-sm);
+    padding-bottom: var(--space-sm);
     margin-bottom: var(--space-md);
+}
+
+#summary-section .section-header {
+    margin-bottom: var(--space-sm);
+}
+
+/* Single-row horizontal scroll for summary cards */
+.summary-scroll-row {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+    /* Thin scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-tertiary) transparent;
+}
+
+.summary-scroll-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.summary-scroll-row::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.summary-scroll-row::-webkit-scrollbar-thumb {
+    background-color: var(--text-tertiary);
+    border-radius: 4px;
+}
+
+.summary-scroll-row > .summary-card-item {
+    flex: 0 0 auto;
+    width: 170px;
+    min-width: 170px;
+}
+
+/* Compact card overrides for sticky scroll row */
+.summary-scroll-row .server-card {
+    padding: var(--space-sm) var(--space-md);
+}
+
+.summary-scroll-row .server-name {
+    font-size: 0.85rem !important;
+    margin-bottom: 0.1rem !important;
+}
+
+.summary-scroll-row .server-status {
+    font-size: 0.65rem !important;
+}
+
+.summary-scroll-row .card-divider {
+    margin: 0.35rem 0 !important;
+}
+
+.summary-scroll-row .metric-row {
+    margin-top: 0.2rem !important;
+    font-size: 0.75rem !important;
+}
+
+.summary-scroll-row .gpu-avail-badge {
+    font-size: 0.7rem !important;
+    padding: 0.1rem 0.35rem !important;
 }
 
 /* ---- Summary Cards (Server Overview) ---- */
@@ -273,15 +338,15 @@ body::after {
     animation: card-enter 0.4s ease both;
 }
 
-/* Stagger animation delay via nth-child on parent cols */
-.row > :nth-child(1) .server-card { animation-delay: 0ms; }
-.row > :nth-child(2) .server-card { animation-delay: 50ms; }
-.row > :nth-child(3) .server-card { animation-delay: 100ms; }
-.row > :nth-child(4) .server-card { animation-delay: 150ms; }
-.row > :nth-child(5) .server-card { animation-delay: 200ms; }
-.row > :nth-child(6) .server-card { animation-delay: 250ms; }
-.row > :nth-child(7) .server-card { animation-delay: 300ms; }
-.row > :nth-child(8) .server-card { animation-delay: 350ms; }
+/* Stagger animation delay via nth-child on parent */
+.summary-scroll-row > :nth-child(1) .server-card { animation-delay: 0ms; }
+.summary-scroll-row > :nth-child(2) .server-card { animation-delay: 50ms; }
+.summary-scroll-row > :nth-child(3) .server-card { animation-delay: 100ms; }
+.summary-scroll-row > :nth-child(4) .server-card { animation-delay: 150ms; }
+.summary-scroll-row > :nth-child(5) .server-card { animation-delay: 200ms; }
+.summary-scroll-row > :nth-child(6) .server-card { animation-delay: 250ms; }
+.summary-scroll-row > :nth-child(7) .server-card { animation-delay: 300ms; }
+.summary-scroll-row > :nth-child(8) .server-card { animation-delay: 350ms; }
 
 /* Micro corner-mark — tiny teal square in top-right */
 .server-card::after {
@@ -458,7 +523,7 @@ body::after {
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
     box-shadow: var(--shadow-card);
-    scroll-margin-top: 340px;
+    scroll-margin-top: 240px;
     transition: border-color var(--transition-smooth);
     animation: card-enter 0.5s ease both;
 }
@@ -886,7 +951,7 @@ body::after {
     }
 
     #summary-section {
-        top: 50px;
+        top: var(--header-height, 50px);
     }
 
     .waste-headline {

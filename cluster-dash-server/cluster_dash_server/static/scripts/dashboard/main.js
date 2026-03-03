@@ -38,6 +38,18 @@ async function init() {
     clusterSummaryEl = document.getElementById('cluster-summary');
     liveIndicatorEl = document.getElementById('live-indicator');
 
+    // Set sticky offset based on actual header height
+    const header = document.querySelector('.dashboard-header');
+    if (header) {
+        const updateStickyOffset = () => {
+            document.documentElement.style.setProperty(
+                '--header-height', header.offsetHeight + 'px'
+            );
+        };
+        updateStickyOffset();
+        window.addEventListener('resize', updateStickyOffset);
+    }
+
     // Load and render data
     await refreshData();
 
